@@ -66,8 +66,7 @@ def run(argv=None):
     lines = pipeline | 'read file' >> beam.io.ReadFromText(known_args.input)#MyCsvFileSource(known_args.input)#beam.io.ReadFromText(known_args.input)
 
 
-    output = (lines | 'split' >> (beam.ParDo(BusinessRegistrationDoFn())
-                                 .with_output_types(unicode)))
+    output = (lines | 'split' >> (beam.ParDo(BusinessRegistrationDoFn()).with_output_types(unicode)))
 
 
     # Write the output using a "Write" transform that has side effects.
