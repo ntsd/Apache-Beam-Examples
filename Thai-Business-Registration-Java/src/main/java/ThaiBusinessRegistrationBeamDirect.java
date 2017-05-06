@@ -26,16 +26,9 @@ import org.apache.beam.sdk.values.PCollection;
 public class ThaiBusinessRegistrationBeamDirect{
 
     static class ExtractDateFn extends DoFn<String, String> {
-        private final Aggregator<Long, Long> emptyLines =
-                createAggregator("emptyLines", Sum.ofLongs());
-
         @ProcessElement
         public void processElement(ProcessContext c) {
-            if (c.element().trim().isEmpty()) {
-                emptyLines.addValue(1L);
-            }
-
-            String date = c.element().trim().split("\\s*,\\s*")[3];
+            String date = c.element().split(",")[3];
 
             // Output each word encountered into the output PCollection.
             if (!date.isEmpty()) {
@@ -71,7 +64,7 @@ public class ThaiBusinessRegistrationBeamDirect{
     public interface ThaiBusinessRegistrationOptions extends PipelineOptions {
 
         @Description("Path of the file to read from")
-        @Default.String("gs://dataflow-test-gg/ThaiBusinessRegistrationData/*")
+        @Default.String("gs://dataflow-test-gg/ThaiBusinessRegistrationData/99_201601.csv")
         String getInputFile();
         void setInputFile(String value);
 
@@ -94,7 +87,8 @@ public class ThaiBusinessRegistrationBeamDirect{
 //    options.setOutput("gs://dataflow-test-gg/ThaiBusinessRegistrationData/out");
         Pipeline p = Pipeline.create(options);
 
-        p.apply("ReadLines", TextIO.Read.from(options.getInputFile()))
+
+        p.apply("ReadLines", TextIO.Read.from(CsvWithHeaderFileSource.from(options.getInputFile()).getFileOrPatternSpec()))
                 .setCoder(StringUtf8Coder.of())
                 .apply(new CountBusiness())
                 .apply(MapElements.via(new FormatAsTextFn()))
